@@ -7,9 +7,6 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install any necessary dependencies (in this case, dependencies in requirements.txt)
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Install pytest if it's not included in the requirements.txt
 RUN pip install pytest
 
