@@ -10,7 +10,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 // Pull code from GitHub
-                git url: 'https://github.com/username/repository.git', branch: 'main'
+                git url: 'https://github.com/khushbu0152/Square-Root-Calculator.git', branch: 'main'
             }
         }
         
