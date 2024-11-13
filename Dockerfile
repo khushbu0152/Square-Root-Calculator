@@ -11,7 +11,7 @@ COPY . /app
 RUN pip install pytest
 
 # Make port 8080 available to the world outside this container (if your app needs it)
-EXPOSE 8080
+EXPOSE 5000
 
 # Run the application or tests
 # Change this based on whether you're running your app or tests
