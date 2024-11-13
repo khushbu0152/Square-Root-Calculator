@@ -1,10 +1,10 @@
 pipeline {
     agent any
     environment {
-        // Define image name and port as variables
         IMAGE_NAME = "myapp:test"
         CONTAINER_NAME = "myapp-container"
         PORT = "8080:8080"
+        VENV_PATH = 'venv' // Path to the virtual environment
     }
     stages {
         stage('Clone Repository') {
@@ -14,14 +14,31 @@ pipeline {
             }
         }
         
+        stage('Set Up Virtual Environment') {
+            steps {
+                script {
+                    // Check if virtual environment exists; if not, create it
+                    if (!fileExists("${VENV_PATH}/Scripts/activate")) {
+                        bat 'python -m venv venv'
+                    }
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                // Install pytest inside the virtual environment
+                bat '.\\venv\\Scripts\\activate && pip install pytest'
+            }
+        }
+
         stage('Run Unit Tests') {
             steps {
                 script {
                     try {
-                        // Run tests with pytest (use 'bat' instead of 'sh' for Windows)
-                        bat 'pytest --junitxml=test_results.xml'
+                        // Run tests using pytest from the virtual environment
+                        bat '.\\venv\\Scripts\\activate && pytest --junitxml=test_results.xml'
                     } catch (Exception e) {
-                        // Fail the build if tests fail
                         error("Unit tests failed")
                     }
                 }
@@ -37,28 +54,22 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                // Only run this stage if tests pass
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
                 script {
-                    // Build Docker image
                     dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
-        
+
         stage('Deploy to Docker Container') {
             when {
-                // Only deploy if the Docker image is built successfully
                 expression { dockerImage != null }
             }
             steps {
                 script {
-                    // Stop and remove any existing container with the same name
                     bat "docker rm -f ${CONTAINER_NAME} || echo 'No existing container found'"
-                    
-                    // Deploy the Docker container
                     bat "docker run -d --name ${CONTAINER_NAME} -p ${PORT} ${IMAGE_NAME}"
                 }
             }
@@ -66,11 +77,9 @@ pipeline {
     }
     post {
         always {
-            // Clean up unused Docker images to save space
             bat 'docker image prune -f'
         }
         failure {
-            // Send a notification or take action on failure
             echo "Build failed"
         }
     }
