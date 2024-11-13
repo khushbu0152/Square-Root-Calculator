@@ -18,8 +18,8 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Run tests with pytest (or replace with appropriate command)
-                        sh 'pytest --junitxml=test_results.xml'
+                        // Run tests with pytest (use 'bat' instead of 'sh' for Windows)
+                        bat 'pytest --junitxml=test_results.xml'
                     } catch (Exception e) {
                         // Fail the build if tests fail
                         error("Unit tests failed")
@@ -56,10 +56,10 @@ pipeline {
             steps {
                 script {
                     // Stop and remove any existing container with the same name
-                    sh "docker rm -f ${CONTAINER_NAME} || true"
+                    bat "docker rm -f ${CONTAINER_NAME} || echo 'No existing container found'"
                     
                     // Deploy the Docker container
-                    dockerImage.run("-d --name ${CONTAINER_NAME} -p ${PORT}")
+                    bat "docker run -d --name ${CONTAINER_NAME} -p ${PORT} ${IMAGE_NAME}"
                 }
             }
         }
@@ -67,7 +67,7 @@ pipeline {
     post {
         always {
             // Clean up unused Docker images to save space
-            sh 'docker image prune -f'
+            bat 'docker image prune -f'
         }
         failure {
             // Send a notification or take action on failure
