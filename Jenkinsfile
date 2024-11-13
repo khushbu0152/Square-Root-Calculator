@@ -3,7 +3,7 @@ pipeline {
     environment {
         IMAGE_NAME = "myapp:test"
         CONTAINER_NAME = "myapp-container"
-        PORT = "8080:8080"
+        PORT = "5000:5000"
         VENV_PATH = 'venv' // Path to the virtual environment
     }
     stages {
